@@ -4,6 +4,6 @@ groepen = {
     'B': {'Belgium', 'Denmark', 'Finland', 'Russia'},
     'C': {'Netherlands', 'North-Macedonia', 'Ukraine', 'Austria'},
     'D': {'England', 'Croatia', 'Scotland', 'Czechia'},
-    'E': {'Poland', 'Slowakia', 'Spain', 'Sweden'},
+    'E': {'Poland', 'Slovakia', 'Spain', 'Sweden'},
     'F': {'Germany', 'France', 'Hungary', 'Portugal'}
 }
