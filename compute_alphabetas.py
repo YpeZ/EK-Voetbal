@@ -64,7 +64,7 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
-def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.0005) -> dict:
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.001, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -76,6 +76,7 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.0005) -
     :param clean_data: the dataset containing all matches played
     :param alphabet_dict: the alphabet dictionary before alphas are updated
     :param att_d_rate: the discount rate for the attacking value
+    :param no_friendly: if true excludes friendly matches
     :return:
     """
 
@@ -85,6 +86,8 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.0005) -
         alpha_sum, beta_sum, goals_sum = 0, 0, 0
 
         for game in games:
+            if no_friendly and game['tournament'] == 'Friendly':
+                continue
             opponent = game['opponent']
             if opponent not in country_names:
                 continue
@@ -98,12 +101,12 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.0005) -
             goals_sum += G_ij * d_factor
             beta_sum += alphabet_dict[opponent]['beta'] * d_factor
 
-        alphabet_dict[country]['alpha'] = goals_sum / beta_sum
+        alphabet_dict[country]['alpha'] = goals_sum / max(beta_sum, 0.001)
 
     return alphabet_dict
 
 
-def update_betas(alphabet_dict: dict, def_d_rate: float = 0) -> dict:
+def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.001, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -115,12 +118,9 @@ def update_betas(alphabet_dict: dict, def_d_rate: float = 0) -> dict:
     :param clean_data: the dataset containing all matches played
     :param alphabet_dict: the alphabet dictionary before alphas are updated
     :param def_d_rate: the discount rate for the defending value
+    :param no_friendly: if true excludes friendly matches
     :return:
     """
-
-    global clean_data
-
-
 
     today = datetime.today()
     country_names = [country for country in clean_data.keys()]
@@ -128,6 +128,8 @@ def update_betas(alphabet_dict: dict, def_d_rate: float = 0) -> dict:
         alpha_sum, beta_sum, goals_sum = 0, 0, 0
 
         for game in games:
+            if no_friendly and game['tournament'] == 'Friendly':
+                continue
             opponent = game['opponent']
             if opponent not in country_names:
                 continue
@@ -141,7 +143,7 @@ def update_betas(alphabet_dict: dict, def_d_rate: float = 0) -> dict:
             goals_sum += G_ij * d_factor
             alpha_sum += alphabet_dict[opponent]['alpha'] * d_factor
 
-        alphabet_dict[country]['beta'] = goals_sum / alpha_sum
+        alphabet_dict[country]['beta'] = goals_sum / max(alpha_sum, 0.001)
 
     return alphabet_dict
 
@@ -163,18 +165,18 @@ def calculate_alphabetas(clean_data: dict =None, force_new: bool = False):
     else:
         if clean_data is None:
             # Open the cleaned data dictionary from file
-            with open('data/clean_match_data.json', 'r') as f:
-                clean_data = json.load(f)
+            with open('data/clean_match_data.json', 'r') as file:
+                clean_data = json.load(file)
 
     # Only include countries that played in 2021
-    clean_data = {country: games for (country, games) in clean_data.items() if games[-1]['date'] > '2021-01-01'}
+    # clean_data = {country: games for (country, games) in clean_data.items() if games[-1]['date'] > '2021-01-01'}
     alphabet_dict = initialize_alphabetas(clean_data)
 
     loop_time = 0
     for iteration in range(10):
         alphabet_dict = update_alphas(clean_data, alphabet_dict)
         start_time = time.time()
-        alphabet_dict = update_betas(alphabet_dict)
+        alphabet_dict = update_betas(clean_data, alphabet_dict)
         loop_time += (time.time() - start_time)
 
     print(f"Executed in {round(loop_time, 3)} seconds.")
@@ -183,7 +185,7 @@ def calculate_alphabetas(clean_data: dict =None, force_new: bool = False):
     alphabet_df = pd.DataFrame.from_dict(alphabet_dict, orient='index')
     alphabet_df.sort_values(by='alpha', ascending=False, inplace=True)
 
-    alphabet_df.to_csv('output/alphabet.csv', index='country')
+    alphabet_df.to_csv('output/alphabet.csv', index_label='country')
 
     return alphabet_df
 
