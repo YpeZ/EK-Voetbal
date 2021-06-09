@@ -4,6 +4,7 @@ import json
 import time
 
 from datetime import datetime
+from constants import groepen
 
 
 def prepare_data(match_data: pd.DataFrame) -> dict:
@@ -64,7 +65,7 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
-def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.001, no_friendly: bool = True) -> dict:
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.002, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -106,7 +107,7 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.001, no
     return alphabet_dict
 
 
-def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.001, no_friendly: bool = True) -> dict:
+def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.002, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -148,11 +149,12 @@ def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.001, no_
     return alphabet_dict
 
 
-def calculate_alphabetas(clean_data: dict =None, force_new: bool = False):
+def calculate_alphabetas(clean_data: dict = None, force_new: bool = False, no_friendly: bool = True):
     """
     Calculate the alpha and beta values for each country in the dataset.
     Including countries that do not participate in the 2020 European Championship
     :param force_new: specifies whether to generate a new dictionary or open one from file
+    :param no_friendly: if true excludes friendly matches from computations
     :return: pandas DataFrame
     """
 
@@ -170,13 +172,17 @@ def calculate_alphabetas(clean_data: dict =None, force_new: bool = False):
 
     # Only include countries that played in 2021
     # clean_data = {country: games for (country, games) in clean_data.items() if games[-1]['date'] > '2021-01-01'}
+    # Only include countries competing in Euro 2020
+    competing_teams = [country for group in groepen.values() for country in group]
+    clean_data = {country: games for (country, games) in clean_data.items() if country in competing_teams}
+
     alphabet_dict = initialize_alphabetas(clean_data)
 
     loop_time = 0
     for iteration in range(10):
-        alphabet_dict = update_alphas(clean_data, alphabet_dict)
+        alphabet_dict = update_alphas(clean_data, alphabet_dict, no_friendly)
         start_time = time.time()
-        alphabet_dict = update_betas(clean_data, alphabet_dict)
+        alphabet_dict = update_betas(clean_data, alphabet_dict, no_friendly)
         loop_time += (time.time() - start_time)
 
     print(f"Executed in {round(loop_time, 3)} seconds.")
@@ -194,5 +200,5 @@ if __name__ == '__main__':
     with open('data/clean_match_data.json', 'r') as f:
         clean_data = json.load(f)
 
-    ab = calculate_alphabetas()
+    ab = calculate_alphabetas(no_friendly=False)
     print(ab)
