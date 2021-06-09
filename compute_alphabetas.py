@@ -65,7 +65,7 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
-def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.002, no_friendly: bool = True) -> dict:
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.01, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -104,10 +104,14 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.002, no
 
         alphabet_dict[country]['alpha'] = goals_sum / max(beta_sum, 0.001)
 
+    alpha_sum = sum(alphabet_dict[country]['alpha'] for country in alphabet_dict.keys())
+    for (country, values) in alphabet_dict.items():
+        values['alpha'] *= len(alphabet_dict.keys()) / alpha_sum
+
     return alphabet_dict
 
 
-def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.002, no_friendly: bool = True) -> dict:
+def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.01, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
