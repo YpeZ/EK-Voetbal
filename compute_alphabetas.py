@@ -63,6 +63,45 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.009) -> dict:
+    """
+    Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
+    Then,
+    alpha_i = (sum_{j =/= i} x_ij * phi(t_ij)) / (sum_{j =/= i} beta_j * phi(t_ij)),
+    with i the country for which to compute the alpha, j the opponents i has faced, x_ij the number of goals scored
+    by i in a match against j, t_ij the number of days ago the match was played and phi a function to determine the
+    time weight for the match between i and j
+
+    :param clean_data: the dataset containing all matches played
+    :param alphabet_dict: the alphabet dictionary before alphas are updated
+    :param att_d_rate: the discount rate for the attacking value
+    :return:
+    """
+
+    today = datetime.today()
+    country_names = [country for country in clean_data.keys()]
+    for country, games in clean_data.items():
+        alpha_sum, beta_sum, goals_sum = 0, 0, 0
+
+        for game in games:
+            opponent = game['opponent']
+            if opponent not in country_names:
+                continue
+            G_ij = game['G']
+
+            game_date = datetime.strptime(game['date'], '%Y-%m-%d')
+            days_ago = abs(today - game_date).days
+
+            d_factor = np.exp(-days_ago * att_d_rate)
+
+            goals_sum += G_ij * d_factor
+            beta_sum += alphabet_dict[opponent]['beta'] * d_factor
+
+        alphabet_dict[country]['alpha'] = goals_sum / beta_sum
+
+    return alphabet_dict
+
+
 def calculate_alphabetas(force_new: bool = False):
     """
     Calculate the alpha and beta values for each country in the dataset.
@@ -83,30 +122,6 @@ def calculate_alphabetas(force_new: bool = False):
             clean_data = json.load(f)
 
     alphabet_dict = initialize_alphabetas(clean_data)
-
-    ## Update alphas
-    att_d_rate = 0.009
-    today = datetime.today()
-    country_names = [country for country in clean_data.keys()]
-    for country, games in clean_data.items():
-        alpha_sum, beta_sum, goals_sum = 0, 0, 0
-
-        for game in games:
-            opponent = game['opponent']
-            if opponent not in country_names:
-                continue
-            G_ij = game['G']
-
-            game_date = datetime.strptime(game['date'], '%Y-%m-%d')
-            days_ago = abs(today - game_date).days
-
-            d_factor = np.exp(-days_ago * att_d_rate)
-
-            goals_sum += G_ij * d_factor
-            beta_sum += alphabet_dict[opponent]['beta'] * d_factor
-
-        # alphabet_df.update({country: })
-        alphabet_dict[country]['alpha'] = goals_sum / beta_sum
 
     # Convert the dictionary to a pandas DataFrame and save it as csv
     alphabet_df = pd.DataFrame.from_dict(alphabet_dict, orient='index')
