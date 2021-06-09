@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import json
+import time
 
 from datetime import datetime
 
@@ -63,7 +64,7 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
-def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.009) -> dict:
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.0005) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -102,7 +103,50 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.009) ->
     return alphabet_dict
 
 
-def calculate_alphabetas(force_new: bool = False):
+def update_betas(alphabet_dict: dict, def_d_rate: float = 0) -> dict:
+    """
+    Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
+    Then,
+    beta_j = (sum_{i =/= j} x_ij * phi(t_ij)) / (sum_{i =/= j} alpha_i * phi(t_ij)),
+    with j the country for which to compute the beta, i the opponents j has faced, x_ij the number of goals conceded
+    by j in a match against i, t_ij the number of days ago the match was played and phi a function to determine the
+    time weight for the match between i and j
+
+    :param clean_data: the dataset containing all matches played
+    :param alphabet_dict: the alphabet dictionary before alphas are updated
+    :param def_d_rate: the discount rate for the defending value
+    :return:
+    """
+
+    global clean_data
+
+
+
+    today = datetime.today()
+    country_names = [country for country in clean_data.keys()]
+    for country, games in clean_data.items():
+        alpha_sum, beta_sum, goals_sum = 0, 0, 0
+
+        for game in games:
+            opponent = game['opponent']
+            if opponent not in country_names:
+                continue
+            G_ij = game['GA']
+
+            game_date = datetime.strptime(game['date'], '%Y-%m-%d')
+            days_ago = abs(today - game_date).days
+
+            d_factor = np.exp(-days_ago * def_d_rate)
+
+            goals_sum += G_ij * d_factor
+            alpha_sum += alphabet_dict[opponent]['alpha'] * d_factor
+
+        alphabet_dict[country]['beta'] = goals_sum / alpha_sum
+
+    return alphabet_dict
+
+
+def calculate_alphabetas(clean_data: dict =None, force_new: bool = False):
     """
     Calculate the alpha and beta values for each country in the dataset.
     Including countries that do not participate in the 2020 European Championship
@@ -117,20 +161,36 @@ def calculate_alphabetas(force_new: bool = False):
         # Open the cleaned data dictionary by running the prepare data function
         clean_data: dict = prepare_data(match_data)
     else:
-        # Open the cleaned data dictionary from file
-        with open('data/clean_match_data.json', 'r') as f:
-            clean_data = json.load(f)
+        if clean_data is None:
+            # Open the cleaned data dictionary from file
+            with open('data/clean_match_data.json', 'r') as f:
+                clean_data = json.load(f)
 
+    # Only include countries that played in 2021
+    clean_data = {country: games for (country, games) in clean_data.items() if games[-1]['date'] > '2021-01-01'}
     alphabet_dict = initialize_alphabetas(clean_data)
+
+    loop_time = 0
+    for iteration in range(10):
+        alphabet_dict = update_alphas(clean_data, alphabet_dict)
+        start_time = time.time()
+        alphabet_dict = update_betas(alphabet_dict)
+        loop_time += (time.time() - start_time)
+
+    print(f"Executed in {round(loop_time, 3)} seconds.")
 
     # Convert the dictionary to a pandas DataFrame and save it as csv
     alphabet_df = pd.DataFrame.from_dict(alphabet_dict, orient='index')
     alphabet_df.sort_values(by='alpha', ascending=False, inplace=True)
 
-    alphabet_df.to_csv('output/alphabet.csv')
+    alphabet_df.to_csv('output/alphabet.csv', index='country')
 
     return alphabet_df
 
 
 if __name__ == '__main__':
-    calculate_alphabetas()
+    with open('data/clean_match_data.json', 'r') as f:
+        clean_data = json.load(f)
+
+    ab = calculate_alphabetas()
+    print(ab)
