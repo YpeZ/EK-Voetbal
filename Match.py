@@ -23,6 +23,11 @@ class Match:
     def away_beta(self):
         return alphabeta.loc[self.away_team, 'beta']
 
+    def matchup(self):
+        home_exp = self.home_alpha() * self.away_beta()
+        away_exp = self.home_beta() * self.away_alpha()
+        return [home_exp, away_exp]
+
     def __str__(self):
         return f"{self.home_team} - {self.away_team}"
 
@@ -30,3 +35,4 @@ class Match:
 match = Match('Turkey', 'Italy')
 print(match.home_team)
 print(match.home_alpha())
+print(match.matchup())
