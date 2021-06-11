@@ -37,7 +37,7 @@ class Group:
 
         return fixture_list
 
-    def simulate_standings(self):
+    def simulate_standings(self, type='df'):
 
         standings = dict()
         for team in self.teams:
@@ -68,20 +68,29 @@ class Group:
             standings[h]['GA'] += sim[1]
             standings[a]['G'] += sim[1]
             standings[a]['GA'] += sim[0]
-            standings[h]['PTS'] = 3 * standings[h]['W'] + standings[h]['W']
-            standings[a]['PTS'] = 3 * standings[a]['W'] + standings[a]['W']
+            standings[h]['PTS'] = 3 * standings[h]['W'] + standings[h]['D']
+            standings[a]['PTS'] = 3 * standings[a]['W'] + standings[a]['D']
 
-            standings_df = pd.DataFrame.from_dict(standings, orient='index')
-            standings_df.sort_values(by=['PTS', 'G'],
-                                     ascending=[False, False], inplace=True)
+        if type == 'dict':
+            return standings
+        standings_df = pd.DataFrame.from_dict(standings, orient='index')
+        standings_df.sort_values(by=['PTS', 'G'],
+                                 ascending=[False, False], inplace=True)
 
         return standings_df
 
+    def average_points(self, num_sims=1000):
+        total_points = {team: 0 for team in self.teams}
+
+        for sim in range(num_sims):
+            sim_standings = self.simulate_standings(type='dict')
+            for team, values in sim_standings.items():
+                total_points[team] += values['PTS']
+
+        for team, values in total_points.items():
+            total_points[team] /= num_sims
+
+        print(total_points)
 
 
-group = Group('A')
-# print(json.dumps(group.standings, indent=4))
-# standings_df = pd.DataFrame.from_dict(group.standings, orient='index')
-# print(standings_df)
-print(group.standings)
 
