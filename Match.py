@@ -95,6 +95,19 @@ class Match:
 
         return [home, draw, away]
 
+    def print_stats(self):
+        string = (
+            f"{self}\n"
+            f"Home goals: {round(self.home_xg, 2)}\n"
+            f"Away goals: {round(self.away_xg, 2)}\n"
+            f"Prob home: {round(self.prob_home, 2)}\n"
+            f"Prob draw: {round(self.prob_draw, 2)}\n"
+            f"Prob away: {round(self.prob_away, 2)}\n")
+
+        print(string)
+        return string
+
     def __str__(self):
         return f"{self.home_team} - {self.away_team}"
 
+Match('Turkey', 'Italy').print_stats()
