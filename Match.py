@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import scipy.stats
 from scipy.stats import poisson
 
 
@@ -8,9 +7,10 @@ alphabeta = pd.read_csv('output/alphabet.csv', index_col=[0])
 
 
 class Match:
-    def __init__(self, home_team, away_team):
+    def __init__(self, home_team, away_team, extra_time=False):
         self.home_team = home_team
         self.away_team = away_team
+        self.extra_time = extra_time
 
         self.home_alpha = self.get_home_alpha()
         self.home_beta = self.get_home_beta()
@@ -23,6 +23,11 @@ class Match:
         self.prob_home = self.get_prob_home()
         self.prob_draw = self.get_prob_draw()
         self.prob_away = self.get_prob_away()
+
+        if self.extra_time:
+            self.prob_home /= (1-self.prob_draw)
+            self.prob_away /= (1- self.prob_draw)
+            self.prob_draw = 0
 
     def get_home_alpha(self):
         return alphabeta.loc[self.home_team, 'alpha']
@@ -70,16 +75,20 @@ class Match:
         away = sum(poisson.pmf(k, mu_2) * poisson.cdf(k - 1, mu_1) for k in range(10))
         return away
 
-    def simulate_home(self, num_sims):
+    def simulate_home(self, num_sims=1):
         home_goals = np.random.poisson(self.home_xg, num_sims)
+        if num_sims == 1:
+            home_goals = int(home_goals)
         return home_goals
 
-    def simulate_away(self, num_sims):
+    def simulate_away(self, num_sims=1):
         away_goals = np.random.poisson(self.away_xg, num_sims)
+        if num_sims == 1:
+            away_goals = int(away_goals)
         return away_goals
 
-    def simulate(self):
-        return [self.simulate_home(), self.simulate_away()]
+    def simulate(self, num_sims=1):
+        return [self.simulate_home(num_sims), self.simulate_away(num_sims)]
 
     def probabilities(self):
         mu_1 = self.home_xg
@@ -109,5 +118,3 @@ class Match:
 
     def __str__(self):
         return f"{self.home_team} - {self.away_team}"
-
-Match('Turkey', 'Italy').print_stats()
