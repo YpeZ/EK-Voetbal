@@ -79,18 +79,25 @@ class Group:
 
         return standings_df
 
-    def average_points(self, num_sims=1000):
+    def average_points(self, num_sims=1000, sort=False):
         total_points = {team: 0 for team in self.teams}
+        total_table = {team: {'M': 0, 'W': 0, 'D': 0, 'L': 0, 'G': 0, 'GA': 0, 'PTS': 0}
+                       for team in self.teams}
 
         for sim in range(num_sims):
             sim_standings = self.simulate_standings(type='dict')
+
             for team, values in sim_standings.items():
-                total_points[team] += values['PTS']
+                for key, team_values in values.items():
+                    total_table[team][key] += team_values
 
-        for team, values in total_points.items():
-            total_points[team] /= num_sims
+        for team, values in total_table.items():
+            for key, team_values in values.items():
+                total_table[team][key] /= num_sims
 
-        print(total_points)
+        if sort:
+            total_table = dict(sorted(total_table.items(),
+                                      key=lambda tup: tup[1]['PTS'],
+                                      reverse=True))
 
-
-
+        return total_table
