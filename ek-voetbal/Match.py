@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import poisson
 
 
-alphabeta = pd.read_csv('output/alphabet.csv', index_col=[0])
+alphabeta = pd.read_csv('../output/alphabet.csv', index_col=[0])
 
 
 class Match:

@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import pandas as pd
 
 from constants import groepen
 from Match import Match
@@ -9,13 +10,6 @@ for groep_idx, teams in groepen.items():
     print(f'Group {groep_idx}')
     for fixture in groep.fixtures[:]:
         fixture.print_stats()
-        # print(fixture)
-        # print(f'Home goals: {round(fixture.home_xg, 2)}')
-        # print(f'Away goals: {round(fixture.away_xg, 2)}')
-        # print(f'Prob home: {round(fixture.prob_home, 2)}')
-        # print(f'Prob draw: {round(fixture.prob_draw, 2)}')
-        # print(f'Prob away: {round(fixture.prob_away, 2)}')
-        # print('\n')
 
 # Second round
 print("Second round")
@@ -47,4 +41,5 @@ Match('Italy', 'Denmark', True).print_stats()
 for groep_idx, teams in groepen.items():
     groep = Group(groep_idx)
     print(f"Group {groep_idx}")
-    print(groep.standings)
+    group_table = groep.average_points(sort=True)
+    print(pd.DataFrame.from_dict(group_table, orient='index'))

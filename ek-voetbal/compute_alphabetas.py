@@ -65,7 +65,7 @@ def initialize_alphabetas(clean_data: dict) -> dict:
     return alphabet_dict
 
 
-def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.01, no_friendly: bool = True) -> dict:
+def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.002, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -111,7 +111,7 @@ def update_alphas(clean_data, alphabet_dict: dict, att_d_rate: float = 0.01, no_
     return alphabet_dict
 
 
-def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.01, no_friendly: bool = True) -> dict:
+def update_betas(clean_data, alphabet_dict: dict, def_d_rate: float = 0.001, no_friendly: bool = True) -> dict:
     """
     Update the alphas in the manner of Maher (1981) using time-weights as proposed by Dixon and Coles (1997).
     Then,
@@ -162,7 +162,7 @@ def calculate_alphabetas(clean_data: dict = None, force_new: bool = False, no_fr
     :return: pandas DataFrame
     """
 
-    match_data = pd.read_csv('data/match_results.csv')
+    match_data = pd.read_csv('../data/match_results.csv')
     match_data = match_data[['date', 'home_team', 'away_team', 'home_score', 'away_score', 'tournament', 'neutral']]
 
     if force_new:
@@ -171,29 +171,32 @@ def calculate_alphabetas(clean_data: dict = None, force_new: bool = False, no_fr
     else:
         if clean_data is None:
             # Open the cleaned data dictionary from file
-            with open('data/clean_match_data.json', 'r') as file:
+            with open('../data/clean_match_data.json', 'r') as file:
                 clean_data = json.load(file)
 
     # Only include countries that played in 2021
     # clean_data = {country: games for (country, games) in clean_data.items() if games[-1]['date'] > '2021-01-01'}
     # Only include countries competing in Euro 2020
     competing_teams = [country for group in groepen.values() for country in group]
-    clean_data = {country: games for (country, games) in clean_data.items() if country in competing_teams}
+    # clean_data = {country: games for (country, games) in clean_data.items() if country in competing_teams}
 
     alphabet_dict = initialize_alphabetas(clean_data)
 
     loop_time = 0
     for iteration in range(10):
-        alphabet_dict = update_alphas(clean_data, alphabet_dict, no_friendly)
+        alphabet_dict = update_alphas(clean_data, alphabet_dict, no_friendly=no_friendly)
         start_time = time.time()
-        alphabet_dict = update_betas(clean_data, alphabet_dict, no_friendly)
+        alphabet_dict = update_betas(clean_data, alphabet_dict, no_friendly=no_friendly)
         loop_time += (time.time() - start_time)
 
     print(f"Executed in {round(loop_time, 3)} seconds.")
 
+    alphabet_dict = {country: values for (country, values) in alphabet_dict.items() if country in competing_teams}
+
     # Convert the dictionary to a pandas DataFrame and save it as csv
     alphabet_df = pd.DataFrame.from_dict(alphabet_dict, orient='index')
     alphabet_df.sort_values(by='alpha', ascending=False, inplace=True)
+
 
     alphabet_df.to_csv('output/alphabet.csv', index_label='country')
 
@@ -201,8 +204,6 @@ def calculate_alphabetas(clean_data: dict = None, force_new: bool = False, no_fr
 
 
 if __name__ == '__main__':
-    with open('data/clean_match_data.json', 'r') as f:
-        clean_data = json.load(f)
 
-    ab = calculate_alphabetas(no_friendly=False)
+    ab = calculate_alphabetas(no_friendly=True)
     print(ab)
