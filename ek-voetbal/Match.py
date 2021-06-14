@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import poisson
+import os.path
 
 
-alphabeta = pd.read_csv('../output/alphabet.csv', index_col=[0])
+file_path = os.path.dirname(__file__)
+alphabeta = pd.read_csv(f'{file_path}/../output/alphabet.csv', index_col=[0])
 
 
 class Match:
