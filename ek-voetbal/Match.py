@@ -26,6 +26,10 @@ class Match:
         self.prob_draw = self.get_prob_draw()
         self.prob_away = self.get_prob_away()
 
+        self.result = self.simulate(num_sims=1)
+        self.winner = [self.home_team, self.away_team][self.result.index(max(self.result))]
+
+
         if self.extra_time:
             self.prob_home /= (1-self.prob_draw)
             self.prob_away /= (1- self.prob_draw)

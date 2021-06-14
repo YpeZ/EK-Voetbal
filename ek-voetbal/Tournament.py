@@ -1,5 +1,6 @@
 from constants import groepen
 from Group import Group
+from Match import Match
 
 
 class Tournament():
@@ -53,8 +54,10 @@ class Tournament():
             [group_lists['A'][1], group_lists['B'][1]]
         ]
 
-        for matchup in matchups:
-            print(f"Home: {matchup[0]}")
+        matches = [Match(matchup[0], matchup[1], extra_time=True) for matchup in matchups]
+        ro_16_winners = [match.winner for match in matches]
+
+        return ro_16_winners
 
 
 tour = Tournament()
