@@ -86,7 +86,7 @@ class Group:
         return standings_df
 
     def average_points(self, num_sims=1000, sort=False):
-        total_table = {team: {'M': 0, 'W': 0, 'D': 0, 'L': 0, 'G': 0, 'GA': 0, 'PTS': 0}
+        total_table = {team: {'M': 0, 'W': 0, 'D': 0, 'L': 0, 'G': 0, 'GA': 0, 'GD': 0, 'PTS': 0}
                        for team in self.teams}
 
         for sim in range(num_sims):
@@ -106,6 +106,3 @@ class Group:
                                       reverse=True))
 
         return total_table
-
-group = Group('A')
-group.simulate_standings()
