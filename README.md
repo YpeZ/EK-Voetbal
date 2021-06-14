@@ -1,5 +1,5 @@
 # EK-Voetbal
-A python implementation of the poisson model for association football scores first proposed by Maher (1982) and improved upon by Dixon and Coles (1987) to forecast scores in the UEFA Euro 2020 championship.
+A Python implementation of the poisson model for association football scores first proposed by Maher (1982) and improved upon by Dixon and Coles (1987) to predict scores and results in the UEFA Euro 2020 tournament.
 
 ## Sources
 ### Papers
