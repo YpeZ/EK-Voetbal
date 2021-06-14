@@ -16,6 +16,8 @@ class Tournament():
         self.third_place_ranked = self.third_places()
         self.quarter_finalists = self.round_of_16()
         self.semi_finalists = self.quarter_finals()
+        self.finalists = self.semi_finals()
+
 
     def third_places(self):
         third_placed = {group_idx: self.group_lists[group_idx][2]
@@ -65,11 +67,29 @@ class Tournament():
         the round of 16 fixtures
         :return: list of quarter finals winners
         """
-        sf_matchups = [
+        qf_matchups = [
             [self.quarter_finalists[0], self.quarter_finalists[1]],
             [self.quarter_finalists[2], self.quarter_finalists[3]],
             [self.quarter_finalists[4], self.quarter_finalists[5]],
             [self.quarter_finalists[6], self.quarter_finalists[7]]
+        ]
+
+        qf_matches = [Match(matchup[0], matchup[1], extra_time=True)
+                      for matchup in qf_matchups]
+
+        qf_winners = [match.winner for match in qf_matches]
+
+        return qf_winners
+
+    def semi_finals(self):
+        """
+        Method to simulate semi finals of the tournament based on results from
+        the quarter finals fixtures
+        :return: list of semi finals winners
+        """
+        sf_matchups = [
+            [self.semi_finalists[0], self.semi_finalists[1]],
+            [self.semi_finalists[2], self.semi_finalists[3]]
         ]
 
         sf_matches = [Match(matchup[0], matchup[1], extra_time=True)
@@ -78,6 +98,7 @@ class Tournament():
         sf_winners = [match.winner for match in sf_matches]
 
         return sf_winners
+
 
 
 tour = Tournament()
