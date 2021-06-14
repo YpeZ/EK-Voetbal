@@ -17,7 +17,7 @@ class Tournament():
         self.quarter_finalists = self.round_of_16()
         self.semi_finalists = self.quarter_finals()
         self.finalists = self.semi_finals()
-
+        self.winner = self.final()
 
     def third_places(self):
         third_placed = {group_idx: self.group_lists[group_idx][2]
@@ -99,9 +99,14 @@ class Tournament():
 
         return sf_winners
 
+    def final(self):
+        """
+        Method to simulate the final of the tournament based on results from
+        the semi finals fixtures
+        :return: string of the name of final winner
+        """
 
+        final_match = Match(self.finalists[0], self.finalists[1], extra_time=True)
 
-tour = Tournament()
-tour.round_of_16()
-print(tour.third_places())
+        return final_match.winner
 
