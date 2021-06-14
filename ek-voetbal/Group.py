@@ -1,6 +1,5 @@
 from constants import groepen
 from Match import Match
-from Fixture import Fixture
 import json
 import pandas as pd
 
@@ -37,7 +36,7 @@ class Group:
 
         return fixture_list
 
-    def simulate_standings(self, type='df'):
+    def simulate_standings(self, type='dict'):
 
         standings = dict()
         for team in self.teams:
@@ -47,6 +46,7 @@ class Group:
                                      'L': 0,
                                      'G': 0,
                                      'GA': 0,
+                                     'GD': 0,
                                      'PTS': 0}})
 
         for fixture in self.fixtures:
@@ -66,15 +66,21 @@ class Group:
             standings[a]['L'] += int(sim[1] < sim[0])
             standings[h]['G'] += sim[0]
             standings[h]['GA'] += sim[1]
+            standings[h]['GD'] += sim[0] - sim[1]
             standings[a]['G'] += sim[1]
             standings[a]['GA'] += sim[0]
+            standings[a]['GD'] += sim[1] - sim[0]
             standings[h]['PTS'] = 3 * standings[h]['W'] + standings[h]['D']
             standings[a]['PTS'] = 3 * standings[a]['W'] + standings[a]['D']
 
+        standings = dict(sorted(standings.items(), key=lambda k: (k[1]['PTS'], k[1]['GD']),
+                                reverse=True))
+
         if type == 'dict':
             return standings
+
         standings_df = pd.DataFrame.from_dict(standings, orient='index')
-        standings_df.sort_values(by=['PTS', 'G'],
+        standings_df.sort_values(by=['PTS', 'GD'],
                                  ascending=[False, False], inplace=True)
 
         return standings_df
@@ -100,3 +106,6 @@ class Group:
                                       reverse=True))
 
         return total_table
+
+group = Group('A')
+group.simulate_standings()
