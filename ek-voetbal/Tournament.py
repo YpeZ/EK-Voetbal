@@ -1,6 +1,7 @@
 from constants import groepen
 from Group import Group
 from Match import Match
+from utils import get_third_place_order
 
 
 class Tournament():
@@ -45,14 +46,16 @@ class Tournament():
         group_lists = {group_idx: list(self.group_results[group_idx].keys())
                        for group_idx in self.group_results.keys()}
 
+        third_placed_list = get_third_place_order(self.third_place_ranked)
+
         matchups = [
-            [group_lists['B'][0], self.third_place_ranked[list(self.third_place_ranked.keys())[0]]],
+            [group_lists['B'][0], third_placed_list[0]],
             [group_lists['A'][0], group_lists['C'][1]],
-            [group_lists['F'][0], self.third_place_ranked[list(self.third_place_ranked.keys())[1]]],
+            [group_lists['F'][0], third_placed_list[3]],
             [group_lists['D'][1], group_lists['E'][1]],
-            [group_lists['E'][0], self.third_place_ranked[list(self.third_place_ranked.keys())[2]]],
+            [group_lists['E'][0], third_placed_list[2]],
             [group_lists['D'][0], group_lists['F'][1]],
-            [group_lists['C'][0], self.third_place_ranked[list(self.third_place_ranked.keys())[3]]],
+            [group_lists['C'][0], third_placed_list[1]],
             [group_lists['A'][1], group_lists['B'][1]]
         ]
 
@@ -110,3 +113,4 @@ class Tournament():
 
         return final_match.winner
 
+tour = Tournament()
