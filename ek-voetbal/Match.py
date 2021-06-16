@@ -29,10 +29,9 @@ class Match:
         self.result = self.simulate(num_sims=1)
         self.winner = [self.home_team, self.away_team][self.result.index(max(self.result))]
 
-
         if self.extra_time:
             self.prob_home /= (1-self.prob_draw)
-            self.prob_away /= (1- self.prob_draw)
+            self.prob_away /= (1-self.prob_draw)
             self.prob_draw = 0
 
     def get_home_alpha(self):
@@ -46,11 +45,6 @@ class Match:
 
     def get_away_beta(self):
         return alphabeta.loc[self.away_team, 'beta']
-
-    def matchup(self):
-        home_exp = self.home_alpha * self.away_beta
-        away_exp = self.home_beta * self.away_alpha
-        return [home_exp, away_exp]
 
     def get_home_xg(self):
         home_xg = self.home_alpha * self.away_beta
@@ -111,7 +105,7 @@ class Match:
         return [home, draw, away]
 
     def print_stats(self):
-        string = (
+        stats_string = (
             f"{self}\n"
             f"Home goals: {round(self.home_xg, 2)}\n"
             f"Away goals: {round(self.away_xg, 2)}\n"
@@ -119,8 +113,15 @@ class Match:
             f"Prob draw: {round(self.prob_draw, 2)}\n"
             f"Prob away: {round(self.prob_away, 2)}\n")
 
-        print(string)
-        return string
+        print(stats_string)
+        return stats_string
+
+    def print_result(self):
+        result_string = (
+            f"{self.home_team} - {self.away_team}: {' - '.join([str(res) for res in self.result])}"
+        )
+
+        print(result_string)
 
     def __str__(self):
         return f"{self.home_team} - {self.away_team}"

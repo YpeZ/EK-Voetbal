@@ -9,6 +9,7 @@ class Group:
         self.teams = groepen[key]
         self.fixtures = self.get_fixtures()
         self.standings = self.simulate_standings()
+        self.ranking = self.rank_teams()
 
     def get_fixtures(self):
 
@@ -80,12 +81,12 @@ class Group:
             return standings
 
         standings_df = pd.DataFrame.from_dict(standings, orient='index')
-        standings_df.sort_values(by=['PTS', 'GD'],
-                                 ascending=[False, False], inplace=True)
+        standings_df.sort_values(by=['PTS', 'GD', 'G'],
+                                 ascending=[False] * 3, inplace=True)
 
         return standings_df
 
-    def average_points(self, num_sims=1000, sort=False):
+    def average_points(self, num_sims=1000, sort=True):
         total_table = {team: {'M': 0, 'W': 0, 'D': 0, 'L': 0, 'G': 0, 'GA': 0, 'GD': 0, 'PTS': 0}
                        for team in self.teams}
 
@@ -105,4 +106,19 @@ class Group:
                                       key=lambda tup: tup[1]['PTS'],
                                       reverse=True))
 
+
         return total_table
+
+    def rank_teams(self) -> list:
+        """
+        Create a list of teams ranked by their standings in the self.standings attribute
+        :return: list of team names
+        """
+        ranked_teams = list(self.standings)
+
+        return ranked_teams
+
+    def print_results(self):
+        for match in self.fixtures:
+            match.print_result()
+
