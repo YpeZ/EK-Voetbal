@@ -1,8 +1,3 @@
-third_place_ranked = {'B': 'Denmark', 'E': 'Sweden',
-                      'C': 'North Macedonia', 'D': 'England',
-                      'F': 'Hungary', 'A': 'Italy'}
-
-
 def get_third_place_order(group_dict: dict) -> list:
     """
     Collect the 'order' in which the best four third placed teams in the
@@ -44,5 +39,3 @@ def get_third_place_order(group_dict: dict) -> list:
     country_list = [group_dict[idx] for idx in new_group_list]
 
     return country_list
-
-# get_third_place_order(third_place_ranked)
