@@ -9,10 +9,10 @@ alphabeta = pd.read_csv(f'{file_path}/../output/alphabet.csv', index_col=[0])
 
 
 class Match:
-    def __init__(self, home_team, away_team, extra_time=False):
+    def __init__(self, home_team, away_team, knockout=False):
         self.home_team = home_team
         self.away_team = away_team
-        self.extra_time = extra_time
+        self.knockout = knockout
 
         self.home_alpha = self.get_home_alpha()
         self.home_beta = self.get_home_beta()
@@ -22,17 +22,11 @@ class Match:
         self.home_xg = self.get_home_xg()
         self.away_xg = self.get_away_xg()
 
-        self.prob_home = self.get_prob_home()
-        self.prob_draw = self.get_prob_draw()
-        self.prob_away = self.get_prob_away()
-
         self.result = self.simulate(num_sims=1)
         self.winner = [self.home_team, self.away_team][self.result.index(max(self.result))]
 
-        if self.extra_time:
-            self.prob_home /= (1-self.prob_draw)
-            self.prob_away /= (1-self.prob_draw)
-            self.prob_draw = 0
+    def __str__(self):
+        return f"{self.home_team} - {self.away_team}"
 
     def get_home_alpha(self):
         return alphabeta.loc[self.home_team, 'alpha']
@@ -75,20 +69,48 @@ class Match:
         away = sum(poisson.pmf(k, mu_2) * poisson.cdf(k - 1, mu_1) for k in range(10))
         return away
 
-    def simulate_home(self, num_sims=1):
-        home_goals = np.random.poisson(self.home_xg, num_sims)
+    def simulate_home(self, num_sims=1, extra_time=False):
+        mu_1 = self.home_xg
+        if extra_time:
+            mu_1 /= 3
+        home_goals = np.random.poisson(mu_1, num_sims)
         if num_sims == 1:
             home_goals = int(home_goals)
         return home_goals
 
-    def simulate_away(self, num_sims=1):
-        away_goals = np.random.poisson(self.away_xg, num_sims)
+    def simulate_away(self, num_sims=1, extra_time=False):
+        mu_2 = self.away_xg
+        if extra_time:
+            mu_2 /= 3
+        away_goals = np.random.poisson(mu_2, num_sims)
         if num_sims == 1:
             away_goals = int(away_goals)
         return away_goals
 
     def simulate(self, num_sims=1):
-        return [self.simulate_home(num_sims), self.simulate_away(num_sims)]
+        home = self.simulate_home(num_sims)
+        away = self.simulate_away(num_sims)
+
+        if self.knockout:
+            # Simulate 30 minutes of a match for knockout matches that end equal
+            # after 90 minutes
+            home_extra = (home == away) * self.simulate_home(num_sims, extra_time=True)
+            away_extra = (home == away) * self.simulate_away(num_sims, extra_time=True)
+
+            home += home_extra
+            away += away_extra
+
+            # If after extra time the scores are still level, a penalty shootout
+            # will decide the winner
+            if num_sims > 1 or home == away:
+                penalties = self.penalty_shootout(num_sims)
+                home_penalties = penalties[self.home_team]
+                away_penalties = penalties[self.away_team]
+
+                home, away = home + (home == away) * home_penalties, \
+                             away + (home == away) * away_penalties
+
+        return [home, away]
 
     def probabilities(self):
         mu_1 = self.home_xg
@@ -123,5 +145,34 @@ class Match:
 
         print(result_string)
 
-    def __str__(self):
-        return f"{self.home_team} - {self.away_team}"
+    def penalty_shootout(self, num_sims) -> dict:
+        home_pens = np.zeros(num_sims)
+        away_pens = np.zeros(num_sims)
+
+        for sim in range(num_sims):
+            penalty_nr = 0
+            pens_diff = 0
+
+            # Simulate the first five penalties until there is a large enough
+            # difference between the number scored
+            while penalty_nr + pens_diff <= 5 and penalty_nr < 5:
+                home_pens[sim] += np.random.binomial(p=0.75, n=1)
+                away_pens[sim] += np.random.binomial(p=0.75, n=1)
+
+                pens_diff = abs(home_pens[sim] - away_pens[sim])
+                penalty_nr += 1
+
+            # Simulate round by round if the number of penalties scored
+            # is level after five penalty kicks
+            while pens_diff == 0:
+                home_pens[sim] += np.random.binomial(p=0.75, n=1)
+                away_pens[sim] += np.random.binomial(p=0.75, n=1)
+
+                pens_diff = abs(home_pens[sim] - away_pens[sim])
+                penalty_nr += 1
+
+        if num_sims == 1:
+            home_pens, away_pens = int(home_pens), int(away_pens)
+
+        result = {self.home_team: home_pens, self.away_team: away_pens}
+        return result

@@ -107,7 +107,7 @@ class Tournament:
             [group_lists['A'][1], group_lists['B'][1]]
         ]
 
-        matches = [Match(matchup[0], matchup[1], extra_time=True) for matchup in matchups]
+        matches = [Match(matchup[0], matchup[1], knockout=True) for matchup in matchups]
 
         return matches
 
@@ -124,7 +124,7 @@ class Tournament:
             [self.quarter_finalists[6], self.quarter_finalists[7]]
         ]
 
-        qf_matches = [Match(matchup[0], matchup[1], extra_time=True)
+        qf_matches = [Match(matchup[0], matchup[1], knockout=True)
                       for matchup in qf_matchups]
 
         return qf_matches
@@ -140,7 +140,7 @@ class Tournament:
             [self.semi_finalists[2], self.semi_finalists[3]]
         ]
 
-        sf_matches = [Match(matchup[0], matchup[1], extra_time=True)
+        sf_matches = [Match(matchup[0], matchup[1], knockout=True)
                       for matchup in sf_matchups]
 
         return sf_matches
@@ -152,7 +152,7 @@ class Tournament:
         :return: Match object
         """
 
-        final_match = Match(self.finalists[0], self.finalists[1], extra_time=True)
+        final_match = Match(self.finalists[0], self.finalists[1], knockout=True)
 
         return final_match
 
