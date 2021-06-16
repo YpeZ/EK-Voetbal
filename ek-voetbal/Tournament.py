@@ -19,7 +19,7 @@ class Tournament:
     to crown themself the champion of the tournament
     """
 
-    def __init__(self, id: int = 0, test=False):
+    def __init__(self):
         self.groups = self.create_groups()
 
         self.group_results = {group_idx: group.standings for (group_idx, group) in self.groups.items()}
@@ -49,7 +49,7 @@ class Tournament:
         group_dict = {group_idx: Group(group_idx) for group_idx in groepen.keys()}
         return group_dict
 
-    def third_places(self):
+    def third_places(self) -> dict:
         """
         Order the teams that ended third place in their groups by the results in their respective
         groups. Only the four best third placed teams advance to the round of 16
@@ -74,7 +74,7 @@ class Tournament:
 
         return third_placed_ranked
 
-    def second_rounders(self):
+    def second_rounders(self) -> list:
         """
         Gather a list of all teams that play the round of 16
         :return: list of teams
@@ -87,7 +87,7 @@ class Tournament:
 
         return sixteen_best_teams
 
-    def round_of_16(self):
+    def round_of_16(self) -> list:
         """
         Simulate the second round of the tournament based on the group stage results
         :return: list of Match objects
@@ -111,7 +111,7 @@ class Tournament:
 
         return matches
 
-    def quarter_finals(self):
+    def quarter_finals(self) -> list:
         """
         Method to simulate quarter finals of the tournament based on results from
         the round of 16 fixtures
@@ -129,7 +129,7 @@ class Tournament:
 
         return qf_matches
 
-    def semi_finals(self):
+    def semi_finals(self) -> list:
         """
         Method to simulate semi finals of the tournament based on results from
         the quarter finals fixtures
@@ -145,7 +145,7 @@ class Tournament:
 
         return sf_matches
 
-    def final(self):
+    def final(self) -> Match:
         """
         Method to simulate the final of the tournament based on results from
         the semi finals fixtures
