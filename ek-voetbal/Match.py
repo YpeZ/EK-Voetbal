@@ -22,6 +22,7 @@ class Match:
         self.home_xg = self.get_home_xg()
         self.away_xg = self.get_away_xg()
 
+        self.penalties = [0, 0]
         self.result = self.simulate(num_sims=1)
         self.winner = [self.home_team, self.away_team][self.result.index(max(self.result))]
 
@@ -126,25 +127,6 @@ class Match:
 
         return [home, draw, away]
 
-    def print_stats(self):
-        stats_string = (
-            f"{self}\n"
-            f"Home goals: {round(self.home_xg, 2)}\n"
-            f"Away goals: {round(self.away_xg, 2)}\n"
-            f"Prob home: {round(self.prob_home, 2)}\n"
-            f"Prob draw: {round(self.prob_draw, 2)}\n"
-            f"Prob away: {round(self.prob_away, 2)}\n")
-
-        print(stats_string)
-        return stats_string
-
-    def print_result(self):
-        result_string = (
-            f"{self.home_team} - {self.away_team}: {' - '.join([str(res) for res in self.result])}"
-        )
-
-        print(result_string)
-
     def penalty_shootout(self, num_sims) -> dict:
         home_pens = np.zeros(num_sims)
         away_pens = np.zeros(num_sims)
@@ -173,6 +155,37 @@ class Match:
 
         if num_sims == 1:
             home_pens, away_pens = int(home_pens), int(away_pens)
+            self.penalties = [home_pens, away_pens]
 
         result = {self.home_team: home_pens, self.away_team: away_pens}
         return result
+
+    def print_stats(self):
+        stats_string = (
+            f"{self}\n"
+            f"Home goals: {round(self.home_xg, 2)}\n"
+            f"Away goals: {round(self.away_xg, 2)}\n"
+            f"Prob home: {round(self.prob_home, 2)}\n"
+            f"Prob draw: {round(self.prob_draw, 2)}\n"
+            f"Prob away: {round(self.prob_away, 2)}\n")
+
+        print(stats_string)
+        return stats_string
+
+    def print_result(self):
+        if sum(self.penalties) == 0:
+            result_string = (
+                f"{self.home_team} - {self.away_team}: " 
+                f"{' - '.join([str(res) for res in self.result])}"
+            )
+        else:
+            home_result = self.result[0] - self.penalties[0]
+            away_result = self.result[1] - self.penalties[1]
+            home_pens, away_pens = self.penalties[0], self.penalties[1]
+
+            result_string = (
+                f"{self.home_team} - {self.away_team}: " 
+                f"{home_result} - {away_result} ({home_pens} - {away_pens})"
+            )
+
+        print(result_string)
