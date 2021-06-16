@@ -6,7 +6,17 @@ from utils import get_third_place_order
 
 class Tournament:
     """
-    Class for simulating an entire tournament
+    Class for simulating an entire instance of the UEFA Euro 2020 tournament.
+
+
+    Before the start of the tournament the teams are divided in six groups of four teams as
+    specified by the constants.groepen dictionary.
+    The four teams in each group play each other once for a total of three games each.
+    The two teams that end up on top of the table advance to the Round of 16 as well as the four
+    best teams that end in third place.
+
+    From the Round of 16 up until the final teams will be eliminated and only one team will remain
+    to crown themself the champion of the tournament
     """
 
     def __init__(self, id: int = 0, test=False):
@@ -35,25 +45,32 @@ class Tournament:
         Initialize the group stage
         :return: dictionary containing Group objects indexed by their group names
         """
+
         group_dict = {group_idx: Group(group_idx) for group_idx in groepen.keys()}
         return group_dict
 
     def third_places(self):
+        """
+        Order the teams that ended third place in their groups by the results in their respective
+        groups. Only the four best third placed teams advance to the round of 16
+        :return: dictionary of teams indexed by their respective group name
+        """
+
         third_placed = {group_idx: self.group_lists[group_idx][2]
                         for group_idx in self.group_results}
 
-        third_placed_points = {group_idx: {'country': third_placed[group_idx],
-                                           'results': self.group_results[group_idx][third_placed[group_idx]]}
-                               for group_idx in self.group_results}
+        third_placed_stats = {group_idx: {'country': third_placed[group_idx],
+                                          'results': self.group_results[group_idx][third_placed[group_idx]]}
+                              for group_idx in self.group_results}
 
-        third_placed_points = dict(sorted(third_placed_points.items(),
-                                          key=lambda tup: (tup[1]['results']['PTS'],
-                                                           tup[1]['results']['GD'],
-                                                           tup[1]['results']['G']),
-                                          reverse=True))
+        third_placed_stats = dict(sorted(third_placed_stats.items(),
+                                         key=lambda tup: (tup[1]['results']['PTS'],
+                                                          tup[1]['results']['GD'],
+                                                          tup[1]['results']['G']),
+                                         reverse=True))
 
-        third_placed_ranked = {group_idx: third_placed_points[group_idx]['country']
-                               for group_idx in third_placed_points.keys()}
+        third_placed_ranked = {group_idx: third_placed_stats[group_idx]['country']
+                               for group_idx in third_placed_stats.keys()}
 
         return third_placed_ranked
 
@@ -73,10 +90,8 @@ class Tournament:
     def round_of_16(self):
         """
         Simulate the second round of the tournament based on the group stage results
-        :return: list of round of sixteen winners
+        :return: list of Match objects
         """
-        # group_lists = {group_idx: list(self.group_results[group_idx].keys())
-        #                for group_idx in self.group_results.keys()}
         group_lists = self.group_lists
 
         third_placed_list = get_third_place_order(self.third_place_ranked)
@@ -93,7 +108,6 @@ class Tournament:
         ]
 
         matches = [Match(matchup[0], matchup[1], extra_time=True) for matchup in matchups]
-        ro_16_winners = [match.winner for match in matches]
 
         return matches
 
@@ -101,7 +115,7 @@ class Tournament:
         """
         Method to simulate quarter finals of the tournament based on results from
         the round of 16 fixtures
-        :return: list of quarter finals winners
+        :return: list of Match objects
         """
         qf_matchups = [
             [self.quarter_finalists[0], self.quarter_finalists[1]],
@@ -113,15 +127,13 @@ class Tournament:
         qf_matches = [Match(matchup[0], matchup[1], extra_time=True)
                       for matchup in qf_matchups]
 
-        qf_winners = [match.winner for match in qf_matches]
-
         return qf_matches
 
     def semi_finals(self):
         """
         Method to simulate semi finals of the tournament based on results from
         the quarter finals fixtures
-        :return: list of semi finals winners
+        :return: list of Match objects
         """
         sf_matchups = [
             [self.semi_finalists[0], self.semi_finalists[1]],
@@ -131,22 +143,26 @@ class Tournament:
         sf_matches = [Match(matchup[0], matchup[1], extra_time=True)
                       for matchup in sf_matchups]
 
-        sf_winners = [match.winner for match in sf_matches]
-
         return sf_matches
 
     def final(self):
         """
         Method to simulate the final of the tournament based on results from
         the semi finals fixtures
-        :return: string of the name of final winner
+        :return: Match object
         """
 
         final_match = Match(self.finalists[0], self.finalists[1], extra_time=True)
 
         return final_match
 
-    def print_results(self):
+    def print_results(self) -> None:
+        """
+        Print the results from the simulation of the entire tournament using
+        print_results methods from Group and Match objects
+        :return: None
+        """
+
         print("Group stage")
         for (key, group) in self.groups.items():
             print(f"Group {key}")
