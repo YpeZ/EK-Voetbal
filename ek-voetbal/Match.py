@@ -29,48 +29,48 @@ class Match:
     def __str__(self):
         return f"{self.home_team} - {self.away_team}"
 
-    def get_home_alpha(self):
+    def get_home_alpha(self) -> float:
         return alphabeta.loc[self.home_team, 'alpha']
 
-    def get_home_beta(self):
+    def get_home_beta(self) -> float:
         return alphabeta.loc[self.home_team, 'beta']
 
-    def get_away_alpha(self):
+    def get_away_alpha(self) -> float:
         return alphabeta.loc[self.away_team, 'alpha']
 
-    def get_away_beta(self):
+    def get_away_beta(self) -> float:
         return alphabeta.loc[self.away_team, 'beta']
 
-    def get_home_xg(self):
+    def get_home_xg(self) -> float:
         home_xg = self.home_alpha * self.away_beta
         return home_xg
 
-    def get_away_xg(self):
+    def get_away_xg(self) -> float:
         away_xg = self.home_beta * self.away_alpha
         return away_xg
 
-    def get_prob_home(self):
+    def get_prob_home(self) -> float:
         mu_1 = self.home_xg
         mu_2 = self.away_xg
 
         home = sum(poisson.pmf(k, mu_1) * poisson.cdf(k - 1, mu_2) for k in range(10))
         return home
 
-    def get_prob_draw(self):
+    def get_prob_draw(self) -> float:
         mu_1 = self.home_xg
         mu_2 = self.away_xg
 
         draw = sum(poisson.pmf(k, mu_1) * poisson.pmf(k, mu_2) for k in range(10))
         return draw
 
-    def get_prob_away(self):
+    def get_prob_away(self) -> float:
         mu_1 = self.home_xg
         mu_2 = self.away_xg
 
         away = sum(poisson.pmf(k, mu_2) * poisson.cdf(k - 1, mu_1) for k in range(10))
         return away
 
-    def simulate_home(self, num_sims=1, extra_time=False):
+    def simulate_home(self, num_sims=1, extra_time=False) -> int:
         mu_1 = self.home_xg
         if extra_time:
             mu_1 /= 3
@@ -79,7 +79,7 @@ class Match:
             home_goals = int(home_goals)
         return home_goals
 
-    def simulate_away(self, num_sims=1, extra_time=False):
+    def simulate_away(self, num_sims=1, extra_time=False) -> int:
         mu_2 = self.away_xg
         if extra_time:
             mu_2 /= 3
@@ -88,7 +88,15 @@ class Match:
             away_goals = int(away_goals)
         return away_goals
 
-    def simulate(self, num_sims=1):
+    def simulate(self, num_sims=1) -> list:
+        """
+        Simulate the number of home and away goals scored in a match.
+        If the score is equal and the match in in the knockout stage,
+        first play an extra 30 minutes and if the score remains equal,
+        do a penalty shootout
+        :param num_sims: the number of times to simulate the match
+        :return: a list containing the total number of home and away goals, respectively
+        """
         home = self.simulate_home(num_sims)
         away = self.simulate_away(num_sims)
 
@@ -105,15 +113,16 @@ class Match:
             # will decide the winner
             if num_sims > 1 or home == away:
                 penalties = self.penalty_shootout(num_sims)
-                home_penalties = penalties[self.home_team]
-                away_penalties = penalties[self.away_team]
+                home_penalties = (home == away) * penalties[self.home_team]
+                away_penalties = (home == away) * penalties[self.away_team]
 
-                home, away = home + (home == away) * home_penalties, \
-                             away + (home == away) * away_penalties
+                home += home_penalties
+                away += away_penalties
 
         return [home, away]
 
     def probabilities(self):
+        """Compute the probabilities for home win, draw or away win and return as dict"""
         mu_1 = self.home_xg
         mu_2 = self.away_xg
 
@@ -121,13 +130,15 @@ class Match:
         draw = sum(poisson.pmf(k, mu_1) * poisson.pmf(k, mu_2) for k in range(10))
         away = sum(poisson.pmf(k, mu_2) * poisson.cdf(k - 1, mu_1) for k in range(10))
 
-        self.prob_home = home
-        self.prob_draw = draw
-        self.prob_away = away
-
-        return [home, draw, away]
+        return {'home': home, 'draw': draw, 'away': away}
 
     def penalty_shootout(self, num_sims) -> dict:
+        """
+        Simulate a penalty shootout until there is a large enough difference
+        to conclude a winner
+        :param num_sims: number of shootouts to simulate
+        :return: a dictionary containing for both teams the number of penalties scored
+        """
         home_pens = np.zeros(num_sims)
         away_pens = np.zeros(num_sims)
 
@@ -158,21 +169,31 @@ class Match:
             self.penalties = [home_pens, away_pens]
 
         result = {self.home_team: home_pens, self.away_team: away_pens}
+
         return result
 
     def print_stats(self):
+        """Print the expected goals and win probabilities"""
+        probs = self.probabilities()
+        prob_home, prob_draw, prob_away = probs['home'], probs['draw'], probs['away']
         stats_string = (
             f"{self}\n"
             f"Home goals: {round(self.home_xg, 2)}\n"
             f"Away goals: {round(self.away_xg, 2)}\n"
-            f"Prob home: {round(self.prob_home, 2)}\n"
-            f"Prob draw: {round(self.prob_draw, 2)}\n"
-            f"Prob away: {round(self.prob_away, 2)}\n")
+            f"Prob home: {round(prob_home, 2)}\n"
+            f"Prob draw: {round(prob_draw, 2)}\n"
+            f"Prob away: {round(prob_away, 2)}\n")
 
         print(stats_string)
+
         return stats_string
 
     def print_result(self):
+        """Print the result of the Match in the format
+        'home_team - away_team: 2 - 3' or
+        'home_team - away_team: 2 - 2 (4 - 3)' in case
+        of a penalty shootout
+        """
         if sum(self.penalties) == 0:
             result_string = (
                 f"{self.home_team} - {self.away_team}: " 
