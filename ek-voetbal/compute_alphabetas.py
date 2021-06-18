@@ -4,7 +4,7 @@ import json
 import time
 
 from datetime import datetime
-from constants import groepen
+from constants_values import groepen
 
 
 def prepare_data(match_data: pd.DataFrame) -> dict:
