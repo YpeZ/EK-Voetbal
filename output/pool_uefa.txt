@@ -1,0 +1,42 @@
+Group A
+Turkey          - Italy          : 0 - 1
+Wales           - Switzerland    : 0 - 1
+Turkey          - Wales          : 0 - 1
+Italy           - Switzerland    : 1 - 0
+Turkey          - Switzerland    : 0 - 1
+Italy           - Wales          : 1 - 0
+Group B
+Denmark         - Finland        : 2 - 0
+Belgium         - Russia         : 2 - 0
+Denmark         - Belgium        : 1 - 2
+Finland         - Russia         : 0 - 1
+Denmark         - Russia         : 2 - 0
+Finland         - Belgium        : 0 - 2
+Group C
+Austria         - North Macedonia: 2 - 1
+Netherlands     - Ukraine        : 1 - 0
+Austria         - Netherlands    : 0 - 1
+North Macedonia - Ukraine        : 0 - 1
+Austria         - Ukraine        : 0 - 1
+North Macedonia - Netherlands    : 0 - 2
+Group D
+England         - Croatia        : 1 - 0
+Scotland        - Czech Republic : 0 - 1
+England         - Scotland       : 2 - 0
+Croatia         - Czech Republic : 2 - 1
+England         - Czech Republic : 1 - 0
+Croatia         - Scotland       : 2 - 1
+Group E
+Poland          - Slovakia       : 1 - 0
+Spain           - Sweden         : 1 - 0
+Poland          - Spain          : 0 - 1
+Slovakia        - Sweden         : 0 - 1
+Poland          - Sweden         : 0 - 1
+Slovakia        - Spain          : 0 - 2
+Group F
+Hungary         - Portugal       : 0 - 2
+France          - Germany        : 1 - 0
+Hungary         - France         : 0 - 1
+Portugal        - Germany        : 2 - 1
+Hungary         - Germany        : 1 - 2
+Portugal        - France         : 1 - 0
