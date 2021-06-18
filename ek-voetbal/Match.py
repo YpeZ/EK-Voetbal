@@ -27,7 +27,7 @@ class Match:
         self.winner = [self.home_team, self.away_team][self.result.index(max(self.result))]
 
     def __str__(self):
-        return f"{self.home_team} - {self.away_team}"
+        return f"{self.home_team:15} - {self.away_team:15}"
 
     def get_home_alpha(self) -> float:
         return alphabeta.loc[self.home_team, 'alpha']
@@ -196,7 +196,7 @@ class Match:
         """
         if sum(self.penalties) == 0:
             result_string = (
-                f"{self.home_team} - {self.away_team}: " 
+                f"{self.home_team:15} - {self.away_team:15}: " 
                 f"{' - '.join([str(res) for res in self.result])}"
             )
         else:
@@ -205,7 +205,7 @@ class Match:
             home_pens, away_pens = self.penalties[0], self.penalties[1]
 
             result_string = (
-                f"{self.home_team} - {self.away_team}: " 
+                f"{self.home_team:15} - {self.away_team:15}: " 
                 f"{home_result} - {away_result} ({home_pens} - {away_pens})"
             )
 
