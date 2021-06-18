@@ -1,6 +1,7 @@
-from constants import groepen
 from Group import Group
 from Match import Match
+
+from constants_values import groepen
 from utils import get_third_place_order
 
 
@@ -19,11 +20,14 @@ class Tournament:
     to crown themself the champion of the tournament
     """
 
-    def __init__(self):
+    def __init__(self, use_expected=False):
         self.groups = self.create_groups()
 
         self.group_results = {group_idx: group.standings for (group_idx, group) in self.groups.items()}
         self.group_lists = {group_idx: group.ranking for (group_idx, group) in self.groups.items()}
+        if use_expected:
+            self.group_results = {group_idx: group.average_points() for (group_idx, group) in self.groups.items()}
+            self.group_lists = {group_idx: list(group) for (group_idx, group) in self.group_results.items()}
         self.third_place_ranked = self.third_places()
 
         self.round_of_16ers = self.second_rounders()
