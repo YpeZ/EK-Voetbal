@@ -1,4 +1,4 @@
-from constants import groepen
+from constants_values import groepen, group_matches
 from Match import Match
 import json
 import pandas as pd
@@ -6,34 +6,17 @@ import pandas as pd
 
 class Group:
     def __init__(self, key):
+        self.key = key
         self.teams = groepen[key]
         self.fixtures = self.get_fixtures()
         self.standings = self.simulate_standings()
+        # self.standings = self.sort_standings()
         self.ranking = self.rank_teams()
 
     def get_fixtures(self):
 
-        fixture_1 = Match(self.teams[0],
-                          self.teams[1])
-        fixture_2 = Match(self.teams[2],
-                          self.teams[3])
-
-        fixture_3 = Match(self.teams[0],
-                          self.teams[2])
-        fixture_4 = Match(self.teams[1],
-                          self.teams[3])
-
-        fixture_5 = Match(self.teams[0],
-                          self.teams[3])
-        fixture_6 = Match(self.teams[1],
-                          self.teams[2])
-
-        fixture_list = [fixture_1,
-                        fixture_2,
-                        fixture_3,
-                        fixture_4,
-                        fixture_5,
-                        fixture_6]
+        fixture_matchups = [matchup for matchup in group_matches[self.key]]
+        fixture_list = [Match(matchup[0], matchup[1]) for matchup in fixture_matchups]
 
         return fixture_list
 
@@ -86,6 +69,23 @@ class Group:
 
         return standings_df
 
+    def sort_standings(self):
+        points = [values['PTS'] for team, values in self.standings.items()]
+        if len(set(points)) == 4:
+            return self.standings
+
+        if len(set(points)) == 1:
+            goal_diffs = [values['GD'] for team, values in self.standings.items()]
+            goals = [values['G'] for team, values in self.standings.items()]
+            print(f"All equal points: {points}. GD: {goal_diffs}. Goals: {goals}")
+
+        elif len(set(points)) == 2:
+            if points.count(list(set(points))[0]) == 2:
+                print(f"Two ties: {points}")
+            else:
+                print(f"Three-way tie: {points}")
+        return self.standings
+
     def average_points(self, num_sims=1000, sort=True):
         total_table = {team: {'M': 0, 'W': 0, 'D': 0, 'L': 0, 'G': 0, 'GA': 0, 'GD': 0, 'PTS': 0}
                        for team in self.teams}
@@ -106,7 +106,6 @@ class Group:
                                       key=lambda tup: tup[1]['PTS'],
                                       reverse=True))
 
-
         return total_table
 
     def rank_teams(self) -> list:
@@ -121,4 +120,3 @@ class Group:
     def print_results(self):
         for match in self.fixtures:
             match.print_result()
-
