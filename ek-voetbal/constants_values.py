@@ -27,7 +27,7 @@ group_matches = {
     ],
     'C': [
         ['Austria', 'North Macedonia'],
-        ['Netherlands', 'Austria'],
+        ['Netherlands', 'Ukraine'],
         ['Ukraine', 'North Macedonia'],
         ['Netherlands', 'Austria'],
         ['North Macedonia', 'Netherlands'],
@@ -58,3 +58,14 @@ group_matches = {
         ['Germany', 'Hungary']
     ]
 }
+
+round_of_16 = [
+    ['Wales', 'Denmark'],
+    ['Italy', 'Austria'],
+    ['Netherlands', 'Czech Republic'],
+    ['Belgium', 'Portugal'],
+    ['Croatia', 'Spain'],
+    ['France', 'Switzerland'],
+    ['England', 'Germany'],
+    ['Sweden', 'Ukraine']
+]
